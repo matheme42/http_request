@@ -21,10 +21,10 @@ class HttpRequest {
   /// contains the list of each instances of [HttpRequest]
   static final Map<String, HttpRequest> _instances = Map<String, HttpRequest>();
 
-  static String _defaultConfiguration;
+  static String? _defaultConfiguration;
 
   /// check in the instances if the [HttpRequest] Configuration exist
-  factory HttpRequest([String name]) {
+  factory HttpRequest([String? name]) {
     if (name == "") {
       throw ArgumentError("name shouldn't be empty");
     }
@@ -36,11 +36,11 @@ class HttpRequest {
       name = _defaultConfiguration;
     }
     if (_instances.containsKey(name)) {
-      return _instances[name];
+      return _instances[name]!;
     }
 
-    _instances[name] = HttpRequest._privateConstructor(name);
-    return _instances[name];
+    _instances[name!] = HttpRequest._privateConstructor(name);
+    return _instances[name]!;
   }
 
   HttpRequest._privateConstructor(this._name);
@@ -71,19 +71,19 @@ class HttpRequest {
   /// [onRequestError] in a function call if something wrong with the request
   /// like no Response, TimeOut, 400, 404, 500, etc...
   /// this function is [global] for all the instance of [HttpRequest]
-  static void Function(http.Response response) onRequestError;
+  static void Function(http.Response? response)? onRequestError;
 
   HttpRequestDebug _httpRequestDebug = HttpRequestDebug.MIN;
 
   void configure(
-      {bool https,
-      String server,
-      String port,
-      String domain,
-      Duration timeOut,
-      HttpRequestDebug httpRequestDebug,
-      bool useByDefault}) {
-    if (https != null) _https = https == false ? "http" : "https";
+      {bool https = false,
+      String? server,
+      String? port,
+      String? domain,
+      Duration? timeOut,
+      HttpRequestDebug? httpRequestDebug,
+      bool useByDefault = false}) {
+    if (https == true) _https = "https";
     if (server != null) _server = server;
     if (port != null) _port = port;
     if (domain != null) _domain = domain;
@@ -132,9 +132,9 @@ class HttpRequest {
   }
 
   dynamic _processResponse(
-      http.Response response, String service, DateTime timeSendRequest) {
+      http.Response? response, String service, DateTime timeSendRequest) {
     if (response == null) {
-      if (onRequestError != null) onRequestError(response);
+      if (onRequestError != null) onRequestError!(response);
       return null;
     }
 
@@ -149,7 +149,7 @@ class HttpRequest {
       _logger.info("<-- ${response.body}");
 
     if (response.statusCode != 200) {
-      if (onRequestError != null) onRequestError(response);
+      if (onRequestError != null) onRequestError!(response);
       return null;
     }
 
@@ -175,7 +175,7 @@ class HttpRequest {
   dynamic post(String service,
       [Map<String, dynamic> jsonBody = const {}, attempt = 1]) async {
     DateTime timeSendRequest = DateTime.now();
-    http.Response response;
+    http.Response? response;
 
     Uri url = Uri.parse("$_https://$_requestUrl$_domain$service");
     _showRequestLog("POST", url, jsonBody, timeSendRequest);
@@ -202,7 +202,7 @@ class HttpRequest {
   dynamic put(String service,
       [Map<String, dynamic> jsonBody = const {}, attempt = 1]) async {
     DateTime timeSendRequest = DateTime.now();
-    http.Response response;
+    http.Response? response;
 
     Uri url = Uri.parse("$_https://$_requestUrl$_domain$service");
     _showRequestLog("PUT", url, jsonBody, timeSendRequest);
@@ -230,7 +230,7 @@ class HttpRequest {
   dynamic get(String service,
       [Map<String, String> jsonBody = const {}, attempt = 1]) async {
     DateTime timeSendRequest = DateTime.now();
-    http.Response response;
+    http.Response? response;
 
     Uri url = _https == "https"
         ? Uri.https(_requestUrl, "$_domain$service", jsonBody)
@@ -250,7 +250,7 @@ class HttpRequest {
     if (response == null && attempt > 0) {
       _logger.warning("-- can't reach the backend less ($attempt) attempts");
       await Future.delayed(Duration(seconds: 2));
-      return post(service, jsonBody, attempt - 1);
+      return get(service, jsonBody, attempt - 1);
     }
 
     return _processResponse(response, service, timeSendRequest);
@@ -259,7 +259,7 @@ class HttpRequest {
   dynamic delete(String service,
       [Map<String, String> jsonBody = const {}, attempt = 1]) async {
     DateTime timeSendRequest = DateTime.now();
-    http.Response response;
+    http.Response? response;
 
     Uri url = _https == "https"
         ? Uri.https(_requestUrl, "$_domain$service", jsonBody)
@@ -279,7 +279,7 @@ class HttpRequest {
     if (response == null && attempt > 0) {
       _logger.warning("-- can't reach the backend less ($attempt) attempts");
       await Future.delayed(Duration(seconds: 2));
-      return post(service, jsonBody, attempt - 1);
+      return delete(service, jsonBody, attempt - 1);
     }
 
     return _processResponse(response, service, timeSendRequest);

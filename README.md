@@ -1,6 +1,6 @@
 # http_request
 
-A new Flutter application.
+A new Flutter project.
 
 ## Getting Started
 
